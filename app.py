@@ -7,7 +7,7 @@ from analyze import (
     find_who_blocks,
 )
 
-st.set_page_config(page_title="합주 시간 찾기", page_icon="🎵", layout="wide")
+st.set_page_config(page_title="합주 시간 찾기", page_icon="🎹", layout="wide")
 
 
 # =============================================================================
@@ -37,7 +37,7 @@ def generate_text_output(saved_songs: list, event_name: str) -> str:
 # =============================================================================
 # 캐싱된 데이터 로드 함수 (같은 URL은 캐시 사용)
 # =============================================================================
-@st.cache_data(show_spinner=False, ttl=3600)  # 1시간 캐시
+@st.cache_data(show_spinner=False, ttl=3600)  # 1시간 단위로 캐시
 def load_when2meet(url: str):
     return get_when2meet_data(url)
 
@@ -97,7 +97,7 @@ if load_button and url:
     if source is None:
         st.error("❌ 올바른 when2meet 또는 timepick 링크를 입력해주세요!")
     else:
-        with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요 ㅠ.ㅠ)"):
+        with st.spinner("데이터 불러오는 중... (첫 로드/새로고침 시 30초 이상 걸릴 수 있어요 ㅠ.ㅠ)"):
             try:
                 if source == "when2meet":
                     st.session_state.data = load_when2meet(url)
@@ -117,7 +117,7 @@ if st.session_state.data:
     
     # 사용법 안내
     st.info("""
-    **사용법** 💡  
+    🎹 **사용법** 🎹  
 
     1️⃣ 곡명 입력 → 2️⃣ 참여 인원 선택 → 3️⃣ 이 결과 저장 버튼
 
@@ -125,10 +125,8 @@ if st.session_state.data:
 
     """)
     
-    # 곡명 입력
-    song_name = st.text_input("🎸 곡명", placeholder="예: 머큐리얼", key=f"song_name_{st.session_state.form_key}")
-    
-    # 참가자 선택
+
+    song_name = st.text_input("🎹 곡명", placeholder="예: 머큐리얼", key=f"song_name_{st.session_state.form_key}")
     selected = st.multiselect(
         "👥 참여 인원 선택",
         options=data["participants"],
