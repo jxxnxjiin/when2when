@@ -49,27 +49,30 @@ def load_timepick(url: str):
 st.title("🎵 합주 시간 찾기")
 
 # =============================================================================
-# 사이드바: 데이터 소스 설정
+# URL 자동 감지 함수
 # =============================================================================
-with st.sidebar:
-    st.header("📊 데이터 소스")
-    
-    source = st.selectbox(
-        "선택",
-        ["when2meet", "timepick"],
-    )
-    
+def detect_source(url: str) -> str | None:
+    """URL에서 플랫폼을 자동 감지합니다."""
+    if not url:
+        return None
+    if "when2meet.com" in url:
+        return "when2meet"
+    if "timepick.net" in url:
+        return "timepick"
+    return None
+
+# =============================================================================
+# 상단: URL 입력
+# =============================================================================
+col1, col2 = st.columns([4, 1])
+with col1:
     url = st.text_input(
-        "URL 입력",
-        placeholder="https://www.when2meet.com/?12345-abcde",
+        "🔗 일정 링크",
+        placeholder="when2meet 또는 timepick 링크를 붙여넣으세요",
+        label_visibility="collapsed",
     )
-    
-    load_button = st.button("데이터 불러오기", type="primary", use_container_width=True)
-    
-    # 캐시 삭제 버튼
-    if st.button("🔄 캐시 삭제 (새로고침)", use_container_width=True):
-        st.cache_data.clear()
-        st.success("캐시 삭제됨!")
+with col2:
+    load_button = st.button("불러오기", type="primary", use_container_width=True)
 
 # =============================================================================
 # 데이터 로드 및 저장된 곡 초기화
@@ -84,15 +87,19 @@ if "form_key" not in st.session_state:
     st.session_state.form_key = 0
 
 if load_button and url:
-    with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요 ㅠ.ㅠ)"):
-        try:
-            if source == "when2meet":
-                st.session_state.data = load_when2meet(url)
-            else:
-                st.session_state.data = load_timepick(url)
-            st.success(f"✅ '{st.session_state.data['name']}' 로드 완료!")
-        except Exception as e:
-            st.error(f"❌ 오류: {e}")
+    source = detect_source(url)
+    if source is None:
+        st.error("❌ 올바른 when2meet 또는 timepick 링크를 입력해주세요!")
+    else:
+        with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요 ㅠ.ㅠ)"):
+            try:
+                if source == "when2meet":
+                    st.session_state.data = load_when2meet(url)
+                else:
+                    st.session_state.data = load_timepick(url)
+                st.success(f"✅ '{st.session_state.data['name']}' 로드 완료!")
+            except Exception as e:
+                st.error(f"❌ 오류: {e}")
 
 # =============================================================================
 # 메인 UI
@@ -174,7 +181,7 @@ if st.session_state.data:
     # =========================================================================
     if st.session_state.saved_songs:
         st.divider()
-        st.subheader("📋 저장된 곡 목록")
+        st.subheader("📋 Setlist")
         
         for i, song in enumerate(st.session_state.saved_songs):
             with st.expander(f"🎵 {song['song_name']} ({len(song['participants'])}명)", expanded=False):
@@ -197,5 +204,5 @@ if st.session_state.data:
             st.code(text_output, language=None)
 
 else:
-    st.info("👈 사이드바에서 URL을 입력하고 데이터를 불러오세요!")
+    st.info("☝️ 상단에 when2meet 또는 timepick 링크를 붙여넣고 불러오기를 눌러주세요!")
 
