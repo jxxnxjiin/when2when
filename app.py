@@ -175,7 +175,7 @@ if st.session_state.data:
             
             if blockers:
                 for name, count in blockers.items():
-                    st.write(f"- **{name}**: 제외 시 +{count}개 슬롯 확보")
+                    st.write(f"- **{name}**: 제외 시 +{int(count)//4}시간 확보")
             else:
                 st.write("분석 불가")
             
