@@ -55,7 +55,7 @@ with st.sidebar:
     st.header("📊 데이터 소스")
     
     source = st.selectbox(
-        "플랫폼 선택",
+        "선택",
         ["when2meet", "timepick"],
     )
     
@@ -84,7 +84,7 @@ if "form_key" not in st.session_state:
     st.session_state.form_key = 0
 
 if load_button and url:
-    with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요)"):
+    with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요 ㅠ.ㅠ)"):
         try:
             if source == "when2meet":
                 st.session_state.data = load_when2meet(url)
