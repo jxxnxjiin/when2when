@@ -82,14 +82,10 @@ if st.session_state.data:
         default=None,
     )
     
-    # 최소 연속 시간
-    min_hours = st.slider("⏱️ 최소 연속 시간", min_value=0.5, max_value=4.0, value=1.0, step=0.5)
-    min_duration = int(min_hours * 60)  # 분으로 변환
-    
     if selected:
         st.divider()
         
-        result = get_available_times_grouped(data, selected, min_duration)
+        result = get_available_times_grouped(data, selected)  # 기본값: 1시간 이상
         
         if result:
             # 전원 가능 시간 있음
