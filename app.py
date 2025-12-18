@@ -80,6 +80,9 @@ if "data" not in st.session_state:
 if "saved_songs" not in st.session_state:
     st.session_state.saved_songs = []
 
+if "form_key" not in st.session_state:
+    st.session_state.form_key = 0
+
 if load_button and url:
     with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요)"):
         try:
@@ -100,13 +103,14 @@ if st.session_state.data:
     st.divider()
     
     # 곡명 입력
-    song_name = st.text_input("🎸 곡명", placeholder="예: 머큐리얼")
+    song_name = st.text_input("🎸 곡명", placeholder="예: 머큐리얼", key=f"song_name_{st.session_state.form_key}")
     
     # 참가자 선택
     selected = st.multiselect(
         "👥 참여 인원 선택",
         options=data["participants"],
         default=None,
+        key=f"participants_{st.session_state.form_key}",
     )
     
     if selected:
@@ -138,6 +142,7 @@ if st.session_state.data:
                         "participants": selected.copy(),
                         "result": result.copy()
                     })
+                    st.session_state.form_key += 1  # 폼 초기화
                     st.success(f"✅ '{song_name}' 저장 완료!")
                     st.rerun()
         else:
