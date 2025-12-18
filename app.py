@@ -215,5 +215,8 @@ if st.session_state.data:
             st.code(text_output, language=None)
 
 else:
-    st.info("when2meet 또는 timepick 링크를 붙여넣고 불러오기를 눌러주세요~")
+    st.info("""
+    when2meet 또는 timepick 링크를 붙여넣고 불러오기를 눌러주세요~
+    
+    최초 로딩 시 시간이 30초 가량 걸릴 수 있습니다 .... """)
 
