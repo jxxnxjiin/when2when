@@ -25,7 +25,8 @@ def find_available_times(data: NormalizedData, participants: list[str]) -> Gener
 
 def merge_consecutive_slots(
     slots: list[datetime], 
-    slot_minutes: int = 15
+    slot_minutes: int = 15,
+    min_duration_minutes: int = 0
 ) -> list[tuple[datetime, datetime]]:
     """
     연속된 시간 슬롯들을 묶어서 (시작, 종료) 튜플 리스트로 반환합니다.
@@ -33,6 +34,7 @@ def merge_consecutive_slots(
     Args:
         slots: datetime 리스트 (정렬되어 있어야 함)
         slot_minutes: 슬롯 간격 (분)
+        min_duration_minutes: 최소 연속 시간 (분). 이보다 짧은 범위는 제외
     
     Returns:
         [(시작시간, 종료시간), ...] 형태의 리스트
@@ -58,6 +60,11 @@ def merge_consecutive_slots(
     
     # 마지막 범위 추가
     merged.append((start, end + timedelta(minutes=slot_minutes)))
+    
+    # 최소 시간 필터링
+    if min_duration_minutes > 0:
+        min_duration = timedelta(minutes=min_duration_minutes)
+        merged = [(s, e) for s, e in merged if (e - s) >= min_duration]
     
     return merged
 
@@ -102,16 +109,22 @@ def group_by_date(
 
 def get_available_times_grouped(
     data: NormalizedData, 
-    participants: list[str]
+    participants: list[str],
+    min_duration_minutes: int = 60
 ) -> dict[str, list[str]]:
     """
     참가자들이 모두 가능한 시간을 날짜별로 그룹핑하여 반환합니다.
+    
+    Args:
+        data: NormalizedData
+        participants: 참가자 이름 리스트
+        min_duration_minutes: 최소 연속 시간 (분). 기본값 60분 (1시간)
     
     Returns:
         {"2025-01-05": ["14:00 ~ 16:30 (2시간 30분)", ...], ...}
     """
     slots = list(find_available_times(data, participants))
-    merged = merge_consecutive_slots(slots, data["slot_minutes"])
+    merged = merge_consecutive_slots(slots, data["slot_minutes"], min_duration_minutes)
     grouped = group_by_date(merged)
     
     result = {}

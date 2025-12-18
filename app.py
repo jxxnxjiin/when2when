@@ -9,6 +9,19 @@ from analyze import (
 
 st.set_page_config(page_title="합주 시간 찾기", page_icon="🎵", layout="wide")
 
+
+# =============================================================================
+# 캐싱된 데이터 로드 함수 (같은 URL은 캐시 사용)
+# =============================================================================
+@st.cache_data(show_spinner=False, ttl=3600)  # 1시간 캐시
+def load_when2meet(url: str):
+    return get_when2meet_data(url)
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def load_timepick(url: str):
+    return get_timepick_data(url)
+
+
 st.title("🎵 합주 시간 찾기")
 
 # =============================================================================
@@ -28,6 +41,11 @@ with st.sidebar:
     )
     
     load_button = st.button("데이터 불러오기", type="primary", use_container_width=True)
+    
+    # 캐시 삭제 버튼
+    if st.button("🔄 캐시 삭제 (새로고침)", use_container_width=True):
+        st.cache_data.clear()
+        st.success("캐시 삭제됨!")
 
 # =============================================================================
 # 데이터 로드
@@ -36,12 +54,12 @@ if "data" not in st.session_state:
     st.session_state.data = None
 
 if load_button and url:
-    with st.spinner("데이터 불러오는 중..."):
+    with st.spinner("데이터 불러오는 중... (첫 로드는 30초 이상 걸릴 수 있어요)"):
         try:
             if source == "when2meet":
-                st.session_state.data = get_when2meet_data(url)
+                st.session_state.data = load_when2meet(url)
             else:
-                st.session_state.data = get_timepick_data(url)
+                st.session_state.data = load_timepick(url)
             st.success(f"✅ '{st.session_state.data['name']}' 로드 완료!")
         except Exception as e:
             st.error(f"❌ 오류: {e}")
@@ -55,7 +73,7 @@ if st.session_state.data:
     st.divider()
     
     # 곡명 입력
-    song_name = st.text_input("🎸 곡명", placeholder="예: 밤편지")
+    song_name = st.text_input("🎸 곡명", placeholder="예: 머큐리얼")
     
     # 참가자 선택
     selected = st.multiselect(
@@ -64,11 +82,14 @@ if st.session_state.data:
         default=None,
     )
     
+    # 최소 연속 시간
+    min_hours = st.slider("⏱️ 최소 연속 시간", min_value=0.5, max_value=4.0, value=1.0, step=0.5)
+    min_duration = int(min_hours * 60)  # 분으로 변환
+    
     if selected:
         st.divider()
         
-        # 결과 계산
-        result = get_available_times_grouped(data, selected)
+        result = get_available_times_grouped(data, selected, min_duration)
         
         if result:
             # 전원 가능 시간 있음
@@ -82,8 +103,7 @@ if st.session_state.data:
             # 전원 가능 시간 없음 → 대안 제시
             st.warning("😢 전원 가능한 시간이 없습니다!")
             
-            # 누가 막고 있는지
-            st.subheader("🚫 일정 조율 방해자")
+            st.subheader("🚫 안 되는 사람")
             blockers = find_who_blocks(data, selected)
             
             if blockers:
